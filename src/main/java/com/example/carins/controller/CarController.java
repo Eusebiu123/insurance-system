@@ -1,5 +1,6 @@
 package com.example.carins.controller;
 
+import com.example.carins.exceptions.ResourceNotFoundException;
 import com.example.carins.model.Car;
 import com.example.carins.model.InsuranceClaim;
 import com.example.carins.service.CarService;
@@ -7,6 +8,8 @@ import com.example.carins.web.dto.CarDto;
 import com.example.carins.web.dto.ClaimResponseDto;
 import com.example.carins.web.dto.InsuranceClaimDto;
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,13 +32,13 @@ public class CarController {
         return service.listCars().stream().map(this::toDto).toList();
     }
 
-    @GetMapping("/cars/{carId}/insurance-valid")
-    public ResponseEntity<?> isInsuranceValid(@PathVariable Long carId, @RequestParam String date) {
-        // TODO: validate date format and handle errors consistently
-        LocalDate d = LocalDate.parse(date);
-        boolean valid = service.isInsuranceValid(carId, d);
-        return ResponseEntity.ok(new InsuranceValidityResponse(carId, d.toString(), valid));
-    }
+//    @GetMapping("/cars/{carId}/insurance-valid")
+//    public ResponseEntity<?> isInsuranceValid(@PathVariable Long carId, @RequestParam String date) {
+//        // TODO: validate date format and handle errors consistently
+//        LocalDate d = LocalDate.parse(date);
+//        boolean valid = service.isInsuranceValid(carId, d);
+//        return ResponseEntity.ok(new InsuranceValidityResponse(carId, d.toString(), valid));
+//    }
 
     private CarDto toDto(Car c) {
         var o = c.getOwner();
@@ -47,17 +50,36 @@ public class CarController {
 
     public record InsuranceValidityResponse(Long carId, String date, boolean valid) {}
 
-    @PostMapping("/{carId}/claims")
-    public ResponseEntity<InsuranceClaim> registerClaim(@PathVariable Long carId, @Valid @RequestBody InsuranceClaimDto request) {
+    @PostMapping("/cars/{carId}/claims")
+    public ResponseEntity<ClaimResponseDto> registerClaim(@PathVariable Long carId, @Valid @RequestBody InsuranceClaimDto request) {
         InsuranceClaim insuranceClaim = service.registerInsuranceClaim(carId,request);
+        ClaimResponseDto response = new ClaimResponseDto(
+                insuranceClaim.getId(),
+                insuranceClaim.getClaimDate(),
+                insuranceClaim.getDescription(),
+                insuranceClaim.getAmount()
+        );
         return ResponseEntity.created(URI.create("/api/cars/" + carId + "/claims/" + insuranceClaim.getId()))
-                .body(insuranceClaim);
+                .body(response);
     }
 
-    @GetMapping("/{carId}/history")
+    @GetMapping("/cars/{carId}/history")
     public ResponseEntity<List<ClaimResponseDto>> getCarHistory(@PathVariable Long carId) {
         List<ClaimResponseDto> history = service.getHistoryOfCar(carId);
 
         return ResponseEntity.ok(history);
+    }
+    @GetMapping("/cars/{carId}/insurance-valid")
+    public ResponseEntity<String> checkInsuranceValid(
+            @PathVariable Long carId,
+            @RequestParam String date) throws BadRequestException {
+        try {
+            Boolean isValid = service.checkInsuranceValid(carId, date);
+            return ResponseEntity.ok(isValid ? "VALID" : "NOT VALID");
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ResourceNotFoundException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 }
