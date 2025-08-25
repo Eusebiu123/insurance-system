@@ -20,8 +20,7 @@ public class InsuranceEndDateFixer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         List<InsurancePolicy> policies = insurancePolicyRepository.findByEndDateIsNull();
-        for(InsurancePolicy policy : policies)
-        {
+        for (InsurancePolicy policy : policies) {
             LocalDate endDate = policy.getStartDate().plusYears(1);
             policy.setEndDate(endDate);
         }

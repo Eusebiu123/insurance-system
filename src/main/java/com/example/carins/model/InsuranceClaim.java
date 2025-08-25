@@ -25,7 +25,8 @@ public class InsuranceClaim {
     @NotNull(message = "amount is required")
     private BigDecimal amount;
 
-    public InsuranceClaim() {}
+    public InsuranceClaim() {
+    }
 
     public InsuranceClaim(Car car, LocalDate claimDate, String description, BigDecimal amount) {
         this.car = car;

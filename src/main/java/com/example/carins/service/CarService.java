@@ -80,7 +80,7 @@ public class CarService {
         if (queryDate.getYear() < 2000 || queryDate.getYear() > 2100) {
             throw new BadRequestException("Date year out of supported range (2000-2100)");
         }
-        boolean isValid = insurancePolicyRepository.existsActiveOnDate(carId,queryDate);
+        boolean isValid = insurancePolicyRepository.existsActiveOnDate(carId, queryDate);
         return isValid;
     }
 }

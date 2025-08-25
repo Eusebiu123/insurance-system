@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;
 
-public interface InsuranceClaimRepository extends JpaRepository<InsuranceClaim,Long> {
+public interface InsuranceClaimRepository extends JpaRepository<InsuranceClaim, Long> {
     Collection<InsuranceClaim> findByCarOrderByClaimDateAsc(Car car);
 }
