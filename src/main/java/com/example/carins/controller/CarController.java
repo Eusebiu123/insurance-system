@@ -1,11 +1,15 @@
-package com.example.carins.web;
+package com.example.carins.controller;
 
 import com.example.carins.model.Car;
+import com.example.carins.model.InsuranceClaim;
 import com.example.carins.service.CarService;
 import com.example.carins.web.dto.CarDto;
+import com.example.carins.web.dto.InsuranceClaimDto;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -41,4 +45,11 @@ public class CarController {
     }
 
     public record InsuranceValidityResponse(Long carId, String date, boolean valid) {}
+
+    @PostMapping("/{carId}/claims")
+    public ResponseEntity<InsuranceClaim> registerClaim(@PathVariable Long carId, @Valid @RequestBody InsuranceClaimDto request) {
+        InsuranceClaim insuranceClaim = service.registerInsuranceClaim(carId,request);
+        return ResponseEntity.created(URI.create("/api/cars/" + carId + "/claims/" + insuranceClaim.getId()))
+                .body(insuranceClaim);
+    }
 }

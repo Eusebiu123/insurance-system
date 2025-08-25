@@ -1,8 +1,13 @@
 package com.example.carins.service;
 
+import com.example.carins.exceptions.ResourceNotFoundException;
 import com.example.carins.model.Car;
+import com.example.carins.model.InsuranceClaim;
 import com.example.carins.repo.CarRepository;
+import com.example.carins.repo.InsuranceClaimRepository;
 import com.example.carins.repo.InsurancePolicyRepository;
+import com.example.carins.web.dto.InsuranceClaimDto;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,10 +18,12 @@ public class CarService {
 
     private final CarRepository carRepository;
     private final InsurancePolicyRepository policyRepository;
+    private final InsuranceClaimRepository insuranceClaimRepository;
 
-    public CarService(CarRepository carRepository, InsurancePolicyRepository policyRepository) {
+    public CarService(CarRepository carRepository, InsurancePolicyRepository policyRepository, InsuranceClaimRepository insuranceClaimRepository) {
         this.carRepository = carRepository;
         this.policyRepository = policyRepository;
+        this.insuranceClaimRepository = insuranceClaimRepository;
     }
 
     public List<Car> listCars() {
@@ -28,4 +35,19 @@ public class CarService {
         // TODO: optionally throw NotFound if car does not exist
         return policyRepository.existsActiveOnDate(carId, date);
     }
+
+    public InsuranceClaim registerInsuranceClaim(Long carId, @Valid InsuranceClaimDto request) {
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
+
+        InsuranceClaim claim = new InsuranceClaim(
+                car,
+                request.getClaimDate(),
+                request.getDescription(),
+                request.getAmount()
+        );
+        InsuranceClaim saved = insuranceClaimRepository.save(claim);
+        return saved;
+    }
+
 }
