@@ -4,6 +4,7 @@ import com.example.carins.model.Car;
 import com.example.carins.model.InsuranceClaim;
 import com.example.carins.service.CarService;
 import com.example.carins.web.dto.CarDto;
+import com.example.carins.web.dto.ClaimResponseDto;
 import com.example.carins.web.dto.InsuranceClaimDto;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -51,5 +52,12 @@ public class CarController {
         InsuranceClaim insuranceClaim = service.registerInsuranceClaim(carId,request);
         return ResponseEntity.created(URI.create("/api/cars/" + carId + "/claims/" + insuranceClaim.getId()))
                 .body(insuranceClaim);
+    }
+
+    @GetMapping("/{carId}/history")
+    public ResponseEntity<List<ClaimResponseDto>> getCarHistory(@PathVariable Long carId) {
+        List<ClaimResponseDto> history = service.getHistoryOfCar(carId);
+
+        return ResponseEntity.ok(history);
     }
 }

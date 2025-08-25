@@ -6,12 +6,15 @@ import com.example.carins.model.InsuranceClaim;
 import com.example.carins.repo.CarRepository;
 import com.example.carins.repo.InsuranceClaimRepository;
 import com.example.carins.repo.InsurancePolicyRepository;
+import com.example.carins.web.dto.ClaimResponseDto;
 import com.example.carins.web.dto.InsuranceClaimDto;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CarService {
@@ -50,4 +53,14 @@ public class CarService {
         return saved;
     }
 
+    public List<ClaimResponseDto> getHistoryOfCar(Long carId) {
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
+        List<ClaimResponseDto> historyList = insuranceClaimRepository.findByCarOrderByClaimDateAsc(car)
+                .stream()
+                .map(c -> new ClaimResponseDto(c.getId(), c.getClaimDate(), c.getDescription(), c.getAmount()))
+                .collect(Collectors.toList());
+
+        return historyList;
+    }
 }
