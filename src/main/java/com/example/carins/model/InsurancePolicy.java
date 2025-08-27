@@ -19,7 +19,7 @@ public class InsurancePolicy {
     @NotNull(message = "startDate is required!")
     private LocalDate startDate;
     @NotNull(message = "endDate is required!")
-    private LocalDate endDate; // nullable == open-ended
+    private LocalDate endDate;
     private Boolean logged = false;
 
     public Boolean getLogged() {

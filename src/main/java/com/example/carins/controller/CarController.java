@@ -7,6 +7,7 @@ import com.example.carins.service.CarService;
 import com.example.carins.web.dto.CarDto;
 import com.example.carins.web.dto.ClaimResponseDto;
 import com.example.carins.web.dto.InsuranceClaimDto;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ public class CarController {
     public List<CarDto> getCars() {
         return service.listCars().stream().map(this::toDto).toList();
     }
+
 
 //    @GetMapping("/cars/{carId}/insurance-valid")
 //    public ResponseEntity<?> isInsuranceValid(@PathVariable Long carId, @RequestParam String date) {

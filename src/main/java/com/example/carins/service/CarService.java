@@ -8,6 +8,7 @@ import com.example.carins.repo.InsuranceClaimRepository;
 import com.example.carins.repo.InsurancePolicyRepository;
 import com.example.carins.web.dto.ClaimResponseDto;
 import com.example.carins.web.dto.InsuranceClaimDto;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,13 @@ public class CarService {
         if (carId == null || date == null) return false;
         // TODO: optionally throw NotFound if car does not exist
         return policyRepository.existsActiveOnDate(carId, date);
+    }
+
+    public boolean ifUniqueVn(Car car) {
+        if (carRepository.existsByVin(car.getVin())) {
+            throw new IllegalArgumentException("VIN deja există: " + car.getVin());
+        }
+        return false;
     }
 
     public InsuranceClaim registerInsuranceClaim(Long carId, @Valid InsuranceClaimDto request) {
