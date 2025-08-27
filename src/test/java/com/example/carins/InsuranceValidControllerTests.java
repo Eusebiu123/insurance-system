@@ -6,6 +6,7 @@ import com.example.carins.model.Owner;
 import com.example.carins.repo.CarRepository;
 import com.example.carins.repo.InsurancePolicyRepository;
 import com.example.carins.repo.OwnerRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,29 +22,35 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.hamcrest.Matchers.containsString;
 
 
-
 @SpringBootTest
 @AutoConfigureMockMvc
 public class InsuranceValidControllerTests {
 
+    @BeforeEach
+    void cleanup() {
+        policyRepository.deleteAll();
+        carRepository.deleteAll();
+        ownerRepository.deleteAll();
+    }
 
-        @Autowired
-        private MockMvc mockMvc;
 
-        @Autowired
-        private CarRepository carRepository;
+    @Autowired
+    private MockMvc mockMvc;
 
-        @Autowired
-        private InsurancePolicyRepository policyRepository;
-        @Autowired
-        private OwnerRepository ownerRepository;
+    @Autowired
+    private CarRepository carRepository;
 
-        @Test
-        void shouldReturn404IfCarNotFound() throws Exception {
-            mockMvc.perform(get("/api/cars/9999/insurance-valid")
-                            .param("date", "2025-08-25"))
-                    .andExpect(status().isNotFound());
-        }
+    @Autowired
+    private InsurancePolicyRepository policyRepository;
+    @Autowired
+    private OwnerRepository ownerRepository;
+
+    @Test
+    void shouldReturn404IfCarNotFound() throws Exception {
+        mockMvc.perform(get("/api/cars/9999/insurance-valid")
+                        .param("date", "2025-08-25"))
+                .andExpect(status().isNotFound());
+    }
 
     @Test
     void shouldReturn400ForInvalidDateFormat() throws Exception {
@@ -65,78 +72,78 @@ public class InsuranceValidControllerTests {
                 .andExpect(content().string(containsString("Invalid date format")));
     }
 
-        @Test
-        void shouldReturn400ForDateOutOfRange() throws Exception {
-            Owner owner = new Owner();
-            owner.setName("TestOwner");
-            ownerRepository.save(owner);
+    @Test
+    void shouldReturn400ForDateOutOfRange() throws Exception {
+        Owner owner = new Owner();
+        owner.setName("TestOwner");
+        ownerRepository.save(owner);
 
-            Car car = new Car(
-                    "VIN12345",
-                    "TestMake",
-                    "TestModel",
-                    2020,
-                    owner
-            );
-            carRepository.save(car);
+        Car car = new Car(
+                "VIN12345",
+                "TestMake",
+                "TestModel",
+                2020,
+                owner
+        );
+        carRepository.save(car);
 
-            mockMvc.perform(get("/api/cars/" + car.getId() + "/insurance-valid")
-                            .param("date", "1800-01-01"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(content().string(containsString("out of supported range")));
-        }
+        mockMvc.perform(get("/api/cars/" + car.getId() + "/insurance-valid")
+                        .param("date", "1800-01-01"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("out of supported range")));
+    }
 
-        @Test
-        void shouldReturnValidWhenPolicyExists() throws Exception {
-            Owner owner = new Owner();
-            owner.setName("TestOwner");
-            ownerRepository.save(owner);
+    @Test
+    void shouldReturnValidWhenPolicyExists() throws Exception {
+        Owner owner = new Owner();
+        owner.setName("TestOwner");
+        ownerRepository.save(owner);
 
-            Car car = new Car(
-                    "VIN12345",
-                    "TestMake",
-                    "TestModel",
-                    2020,
-                    owner
-            );
-            carRepository.save(car);
-            policyRepository.save(new InsurancePolicy(
-                    car,
-                    "TestProvider",
-                    LocalDate.of(2025, 1, 1),
-                    LocalDate.of(2025, 12, 31)
-            ));
+        Car car = new Car(
+                "VIN12345",
+                "TestMake",
+                "TestModel",
+                2020,
+                owner
+        );
+        carRepository.save(car);
+        policyRepository.save(new InsurancePolicy(
+                car,
+                "TestProvider",
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2025, 12, 31)
+        ));
 
-            mockMvc.perform(get("/api/cars/" + car.getId() + "/insurance-valid")
-                            .param("date", "2025-08-25"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("VALID"));
-        }
+        mockMvc.perform(get("/api/cars/" + car.getId() + "/insurance-valid")
+                        .param("date", "2025-08-25"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("VALID"));
+    }
 
-        @Test
-        void shouldReturnNotValidWhenNoPolicyCoversDate() throws Exception {
-            Owner owner = new Owner();
-            owner.setName("TestOwner");
-            ownerRepository.save(owner);
+    @Test
+    void shouldReturnNotValidWhenNoPolicyCoversDate() throws Exception {
+        Owner owner = new Owner();
+        owner.setName("TestOwner");
+        ownerRepository.save(owner);
 
-            Car car = new Car(
-                    "VIN12345",
-                    "TestMake",
-                    "TestModel",
-                    2020,
-                    owner
-            );
-            carRepository.save(car);
-            policyRepository.save(new InsurancePolicy(
-                    car,
-                    "TestProvider",
-                    LocalDate.of(2025, 1, 1),
-                    LocalDate.of(2025, 6, 30)
-            ));
+        Car car = new Car(
+                "VIN12345",
+                "TestMake",
+                "TestModel",
+                2020,
+                owner
+        );
+        carRepository.save(car);
+        policyRepository.save(new InsurancePolicy(
+                car,
+                "TestProvider",
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2025, 6, 30)
+        ));
 
-            mockMvc.perform(get("/api/cars/" + car.getId() + "/insurance-valid")
-                            .param("date", "2025-08-25"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("NOT VALID"));
-        }
+        mockMvc.perform(get("/api/cars/" + car.getId() + "/insurance-valid")
+                        .param("date", "2025-08-25"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("NOT VALID"));
+    }
 }
